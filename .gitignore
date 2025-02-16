@@ -1,0 +1,7 @@
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Ignore docx files generated in the root folder
+/*.docx
