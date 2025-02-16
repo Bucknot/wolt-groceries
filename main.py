@@ -1,5 +1,5 @@
-
 from services.wolt_service import WoltService
+from services.chp_service import ChpService
 
 
 # A list of tuples where each tuple contains an item to search and a boolean indicating whether
@@ -14,13 +14,16 @@ from services.wolt_service import WoltService
 
 ITEMS_TO_SEARCH = [
     ("קורנפלקס אלופים 850 גרם", True),
-    ("שעועית לבנה סנפרוסט 800 גרם", True),
     ("כוסמת 500 גרם", True),
-    ("שוקולית 500 גרם", False),
-    ("אינסטלטור נוזלי", False),
+    ("שוקולית 500 גרם", True),
+    ("אינסטלטור נוזלי", True),
     ("גבינה צהובה עמק 28% 400 גרם", True),
     ("ביצים L 12", True),
     ("קוקה קולה זירו 1.5 ליטר", True),
+    ("מעדן יולו שוקולד חלב 123 גרם", True),
+    ("חמאה תנובה 200 גרם", True),
+    ("נקניקיות עוף 400 גרם", True),
+    ("קוטג' תנובה 5% ", True),
 ]
 
 ADDRESS = "ז'בוטינסקי 2, רמת גן"
@@ -32,7 +35,12 @@ def main():
     wolt_service.check_missing_items()
     wolt_service.calculate_average_prices()
     wolt_service.filter_duplicates()
-    wolt_service.generate_report("results.docx")
+    
+    chp_service = ChpService(ADDRESS, ITEMS_TO_SEARCH)
+    chp_service.fetch_items()
+    
+    # Generate combined report
+    wolt_service.generate_report("results.docx", chp_service.get_complete_venues())
 
 if __name__ == "__main__":
     main()

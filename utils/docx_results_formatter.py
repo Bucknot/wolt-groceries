@@ -9,6 +9,17 @@ class DocxResultFormatter:
     def __init__(self, file_name):
         self.document = Document()
         self.file_name = file_name
+        self._setup_chp_styles()  # New method call
+
+    def _setup_chp_styles(self):
+        # Add lighter styles for CHP venues
+        style = self.document.styles.add_style('ChpHeading', 1)
+        style.font.size = Pt(12)  # Smaller than regular headings
+        style.font.color.rgb = RGBColor(100, 100, 100)  # Lighter gray
+
+        style = self.document.styles.add_style('ChpVenue', 1)
+        style.font.size = Pt(10)  # Smaller than regular venue text
+        style.font.color.rgb = RGBColor(80, 80, 80)
 
     def add_heading(self, text, level=1):
         heading = self.document.add_heading(text, level=level)
@@ -86,15 +97,65 @@ class DocxResultFormatter:
         self.add_heading("הסל היקר ביותר", level=1)
         self.add_venue(venue, average_price_map)
 
-    def add_statistics(self, venues, average_price_map):
+    def add_statistics(self, venues, average_price_map, chp_venues=None):
         num_venues = len(venues)
         total_prices = [venue.total_normalized_price(average_price_map) for venue in venues]
         avg_price = round(sum(total_prices) / num_venues, 2) if num_venues > 0 else 0
         min_price = min(total_prices) if total_prices else 0
         max_price = max(total_prices) if total_prices else 0
 
+        # Calculate cheapest CHP venue price if available
+        chp_min_price = None
+        if chp_venues:
+            chp_prices = [venue.total_price() for venue in chp_venues]
+            if chp_prices:
+                chp_min_price = min(chp_prices)
+
         self.add_heading(f"מספר חנויות שמצאו את כל הפריטים החיוניים: {num_venues}", level=1)
-        self.add_paragraph(f"מחיר ממוצע: ₪{avg_price}   |   מחיר מינימלי: ₪{min_price}  |   מחיר מקסימלי: ₪{max_price}", font_size=9)
+        stats_text = f"מחיר מינימלי: ₪{min_price}   |   מחיר מקסימלי: ₪{max_price}"
+        if chp_min_price is not None:
+            stats_text += f"   |   מחיר מינימלי באונליין: ₪{chp_min_price:.2f}"
+        self.add_paragraph(stats_text, font_size=9)
+
+    def add_chp_venues(self, chp_venues):
+        if not chp_venues:
+            return
+
+        self.document.add_paragraph().add_run('\n')  # Add spacing
+        self.add_heading('חנויות אונליין:', level=2)  # Using proper heading
+
+        # Sort venues by total price
+        sorted_venues = sorted(chp_venues, key=lambda v: v.total_price())
+        
+        for venue in sorted_venues:
+            # Add venue name and website with venue style
+            venue_para = self.document.add_paragraph(style='ChpVenue')
+            venue_para.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+            venue_para.add_run(f'{venue.name} - ').bold = True
+            self.add_hyperlink(venue_para, venue.website_url, venue.website_url)
+
+            # Add total price
+            price_para = self.document.add_paragraph(style='ChpVenue')
+            price_para.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+            price_para.add_run(f'סה"כ: {venue.total_price():.2f} ₪').bold = True
+
+            # Add items as bullet points with hyperlinks
+            for item_name, (price, url) in venue.items.items():
+                para = self.document.add_paragraph(style='ChpVenue')
+                para.style.font.size = Pt(10)
+                para.style.font.color.rgb = RGBColor(80, 80, 80)
+                para.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+                
+                # Add bullet point
+                para.style = self.document.styles['ListBullet']
+                text = f'{item_name}: {price:.2f} ₪'
+                
+                if url:
+                    self.add_hyperlink(para, url, text)
+                else:
+                    para.add_run(text)
+
+            self.document.add_paragraph().add_run('\n')  # Add spacing between venues
 
     def save(self):
         base_name, extension = os.path.splitext(self.file_name)

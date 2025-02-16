@@ -1,5 +1,22 @@
+# IDE specific files
 .idea/
 .vscode/
+
+# Python compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Virtual environment
+venv/
+env/
+.env/
+
 *.iml
 .DS_Store
 

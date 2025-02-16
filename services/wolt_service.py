@@ -21,8 +21,8 @@ class WoltService:
     def fetch_items(self):
         print("Fetching items from Wolt client...")
         total_items_fetched = 0
+        print("Searching for {len(item_to_search)} items in Wolt venues...")
         for item_to_search, must_include in self.items_to_search:
-            print(f"Searching for item: {get_display(item_to_search)}")
             items = self.wolt_client.search(item_to_search)
             total_items_fetched += len(items)
             venue_to_items = self.sort_found_items_by_venue(items, item_to_search)
@@ -85,8 +85,8 @@ class WoltService:
             total_venues_processed += 1
         print(f"Finished filtering {total_duplicates_filtered} duplicate items from {total_venues_processed} venues.")
 
-    def generate_report(self, file_name):
-        print("Generating DOCX report...")
+    def generate_report(self, file_name, chp_venues=None):
+        print("Generating reports...")
         result_formatter = DocxResultFormatter(file_name)
         must_include_items = [item_to_search for item_to_search, must_include in self.items_to_search if must_include]
         sorted_venues = sorted(
@@ -95,7 +95,7 @@ class WoltService:
             key=lambda v: v.total_normalized_price(self.average_price_map)
         )
         if sorted_venues:
-            result_formatter.add_statistics(sorted_venues, self.average_price_map)
+            result_formatter.add_statistics(sorted_venues, self.average_price_map, chp_venues)
             result_formatter.add_heading("הסל הזול ביותר", level=1)
             result_formatter.add_venue(sorted_venues[0], self.average_price_map)
             if len(sorted_venues) > 1:
@@ -121,15 +121,22 @@ class WoltService:
         )
         if most_expensive_venue:
             result_formatter.add_most_expensive_venue(most_expensive_venue, self.average_price_map)
+        
+        # Add CHP venues after Wolt venues
+        if chp_venues:
+            result_formatter.add_chp_venues(chp_venues)
+            
         result_formatter.save()
-        print("Report saved to", file_name)
+        print("Report saved to", result_formatter.file_name)
         
-        # Generate console report
-        self.console_report_formatter.generate_console_report(self.venue_id_to_venue, self.average_price_map, self.items_to_search)
-        print("Console report generated.")
+        self.console_report_formatter.generate_console_report(
+            self.venue_id_to_venue,
+            self.average_price_map,
+            self.items_to_search,
+            chp_venues
+        )
         
-        # Open the created DOCX file
-        os.system(f"open {file_name}")
+        os.system(f"open \"{result_formatter.file_name}\"")
 
     def sort_found_items_by_venue(self, items, item_to_search):
         venue_to_items = {}
