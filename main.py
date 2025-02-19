@@ -17,13 +17,14 @@ ITEMS_TO_SEARCH = [
     ("כוסמת 500 גרם", True),
     ("שוקולית 500 גרם", True),
     ("אינסטלטור נוזלי", True),
-    ("גבינה צהובה עמק 28% 400 גרם", True),
-    ("ביצים L 12", True),
-    ("קוקה קולה זירו 1.5 ליטר", True),
-    ("מעדן יולו שוקולד חלב 123 גרם", True),
-    ("חמאה תנובה 200 גרם", True),
-    ("נקניקיות עוף 400 גרם", True),
-    ("קוטג' תנובה 5% ", True),
+    ("עמק אצבעות", True),
+    ("פיראוס בולגרית 16%", True),
+    ("פתיתי מוצרלה 200", True),
+    ("גד צפתית 5%", True),
+    ("תנובה קוטג' 5%", True),
+    ("עוף טוב צ'ונגו", False),
+    ("ברילה 500 גרם", True)
+
 ]
 
 ADDRESS = "ז'בוטינסקי 2, רמת גן"
@@ -39,8 +40,8 @@ def main():
     chp_service = ChpService(ADDRESS, ITEMS_TO_SEARCH)
     chp_service.fetch_items()
     
-    # Generate combined report
-    wolt_service.generate_report("results.docx", chp_service.get_complete_venues())
+    # Generate combined report with .html extension
+    wolt_service.generate_report("results.html", chp_service.get_complete_venues())
 
 if __name__ == "__main__":
     main()

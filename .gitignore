@@ -20,5 +20,8 @@ env/
 *.iml
 .DS_Store
 
-# Ignore docx files generated in the root folder
+# Ignore docx and html files generated in the root folder
 /*.docx
+/*.html
+
+.git-credentials

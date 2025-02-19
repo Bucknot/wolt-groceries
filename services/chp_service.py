@@ -1,21 +1,25 @@
 from bidi.algorithm import get_display
 
-from infrastructure.chp_client import ChpClient
+from infrastructure.chp_client import ChpClient  # Verify this import path
 from models.chp_venue import ChpVenue
 
 class ChpService:
     def __init__(self, address, items_to_search):
         self.address = address
         self.items_to_search = items_to_search
-        self.chp_client = ChpClient(address)
+        self.chp_client = ChpClient(address)  # This is where the mock should be used
         self.venues = {}  # website -> ChpVenue
 
     def fetch_items(self):
         print("\nFetching items from CHP...")
         total_items_found = 0
-        print("Searching for {len(self.items_to_search)} items in non-Wolt venues...")
+        print(f"Searching for {len(self.items_to_search)} items in non-Wolt venues...")
+        
+        # Create client instance after initialization to ensure mock works
+        if not hasattr(self, 'chp_client'):
+            self.chp_client = ChpClient(self.address)
+
         for item_to_search, must_include in self.items_to_search:
-                
             results = self.chp_client.search(item_to_search)
             total_items_found += len(results)
             

@@ -71,12 +71,12 @@ class ConsoleReportFormatter:
     def print_venue(self, venue, average_price_map, rank=None):
         if rank:
             print(f"\nOption {rank}:")
-        print(f"Venue: {get_display(venue.name)}")  # Updated
-        print(venue.url)  # New
+        print(f"Venue: {get_display(venue.name)}")
+        print(venue.url)
         print(f"Total Normalized Price: {venue.total_normalized_price(average_price_map)}")
         print("Items:")
         for item in venue.items:
-            print(f"  - {get_display(item.name)}: {item.price}")  # Updated
+            print(f"  - {get_display(item.name)}: {item.price}")
 
     def _print_statistics(self, venues, average_price_map, chp_venues=None):
         must_include_items = [venue for venue in venues.values() if all(

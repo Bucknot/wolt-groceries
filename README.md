@@ -9,8 +9,8 @@ Update the `ITEMS_TO_SEARCH` and the `ADDRESS` consts at the top of the `main.py
 
 ## Results
 
-The results are both printed to the console and saved as a docx file.
-The docx file contains links to all of the venues and the items found in them.
+The results are both printed to the console and saved as a html file.
+The html file contains links to all of the venues and the items found in them.
 
 ## How to Run the Script
 
