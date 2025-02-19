@@ -9,7 +9,7 @@ class ReportGenerator:
 
     def generate_report(self, file_name, venue_id_to_venue, average_price_map, chp_venues=None):
         print("Generating reports...")
-        base_name, extension = os.path.splitext(file_name)
+        base_name, _ = os.path.splitext(file_name)
         html_file = f"{base_name}.html"
         
         result_formatter = HtmlReportFormatter(html_file)
@@ -78,11 +78,9 @@ class ReportGenerator:
         if chp_venues:
             result_formatter.add_chp_venues(chp_venues)
             
-        # Save the HTML report
         result_formatter.save()
         print("Report saved to", result_formatter.file_name)
         
-        # Generate console report
         self.console_report_formatter.generate_console_report(
             venue_id_to_venue,
             average_price_map,
@@ -90,5 +88,4 @@ class ReportGenerator:
             chp_venues
         )
         
-        # Open the created HTML file in default browser
         os.system(f"open \"{result_formatter.file_name}\"")

@@ -1,6 +1,7 @@
 from services.wolt_service import WoltService
 from services.chp_service import ChpService
 from utils.report_generator import ReportGenerator
+import asyncio
 
 
 # A list of tuples where each tuple contains an item to search and a boolean indicating whether
@@ -30,18 +31,18 @@ ITEMS_TO_SEARCH = [
 
 ADDRESS = "ז'בוטינסקי 2, רמת גן"
 
-def main():
+async def main():
     wolt_service = WoltService(ADDRESS, ITEMS_TO_SEARCH)
-    wolt_service.fetch_items()
+    chp_service = ChpService(ADDRESS, ITEMS_TO_SEARCH)
+    await asyncio.gather(
+        wolt_service.fetch_items(),
+        chp_service.fetch_items()
+    )
     wolt_service.map_venues()
     wolt_service.check_missing_items()
     wolt_service.calculate_average_prices()
     wolt_service.filter_duplicates()
     
-    chp_service = ChpService(ADDRESS, ITEMS_TO_SEARCH)
-    chp_service.fetch_items()
-    
-    # Generate report using ReportGenerator
     report_generator = ReportGenerator(ITEMS_TO_SEARCH)
     report_generator.generate_report(
         "results.html",
@@ -51,4 +52,4 @@ def main():
     )
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

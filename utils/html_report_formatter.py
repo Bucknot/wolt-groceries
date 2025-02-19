@@ -356,7 +356,7 @@ class HtmlReportFormatter:
         stats_html = f'''
         <div class="stats-section">
             <div class="stats-main mb-4">
-                <p><span class="stats-number">{num_venues}</span> חנויות מוכרות את כל הפריטים החיוניים</p>
+                <p>נמצאו <span class="stats-number">{num_venues}</span> חנויות שמוכרות את כל הפריטים החיוניים מרשימת הקניות</p>
             </div>
             <div class="row text-center">
                 <div class="col-md-4">

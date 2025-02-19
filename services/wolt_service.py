@@ -4,6 +4,7 @@ from models.venue import Venue
 from models.venue_item import VenueItem
 from utils.duplicate_items_handler import DuplicateItemsHandler
 from bidi.algorithm import get_display
+import asyncio
 
 class WoltService:
     def __init__(self, address, items_to_search):
@@ -15,12 +16,15 @@ class WoltService:
         self.item_price_map = {item[0]: [] for item in items_to_search}
         self.average_price_map = {}
 
-    def fetch_items(self):
-        print("Fetching items from Wolt client...")
-        total_items_fetched = 0
-        print(f"Searching for {len(self.items_to_search)} items in Wolt venues...")
+    async def fetch_items(self):
+        print("Fetching items from Wolt client asynchronously...")
+        tasks = []
         for item_to_search, must_include in self.items_to_search:
-            items = self.wolt_client.search(item_to_search)
+            tasks.append(asyncio.to_thread(self.wolt_client.search, item_to_search))
+        results = await asyncio.gather(*tasks)
+
+        total_items_fetched = 0
+        for (item_to_search, must_include), items in zip(self.items_to_search, results):
             total_items_fetched += len(items)
             venue_to_items = self.sort_found_items_by_venue(items, item_to_search)
             for venue_id, venue_items in venue_to_items.items():
