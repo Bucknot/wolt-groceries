@@ -11,6 +11,7 @@ class HtmlReportFormatter:
         self.items_to_search = []  # Initialize empty list for searched items
         self._saved_content = []  # Add this line
         self.average_price_map = {}  # Add this line
+        self.venue_id_to_venue = {}  # Add this line
         self._init_template()
 
     def set_items_to_search(self, items):
@@ -160,7 +161,7 @@ class HtmlReportFormatter:
             border-radius: 8px;
             display: inline-block;
             font-weight: 500;
-            color: var(--bg-light);
+            color: var (--bg-light);
             z-index: 1;
         }}
         
@@ -197,17 +198,18 @@ class HtmlReportFormatter:
         
         .tooltip .tooltiptext {{
             visibility: hidden;
-            width: 120px;
+            min-width: 120px;  /* Changed from width to min-width */
+            white-space: nowrap;  /* Added to prevent line breaks */
             background-color: var(--secondary-color);
             color: white;
             text-align: center;
             border-radius: 6px;
-            padding: 5px;
+            padding: 5px 10px;  /* Added horizontal padding */
             position: absolute;
             z-index: 1;
             bottom: 125%;
             left: 50%;
-            margin-left: -60px;
+            transform: translateX(-50%);  /* Center the tooltip */
             opacity: 0;
             transition: opacity 0.3s;
         }}
@@ -306,6 +308,23 @@ class HtmlReportFormatter:
         .carousel-item:not(:first-child) .carousel-control-prev {{
             display: flex;  /* Show controls when applicable */
         }}
+        
+        .stats-section p {{
+            white-space: nowrap;  /* Prevent text wrapping */
+            margin-bottom: 0;     /* Remove bottom margin */
+        }}
+        
+        .stats-section .col-md-4 {{
+            overflow: hidden;     /* Hide overflow */
+            text-overflow: ellipsis; /* Show ellipsis for overflow */
+        }}
+        
+        @media (max-width: 768px) {{
+            .stats-section p {{
+                white-space: normal;  /* Allow wrapping on mobile */
+                font-size: 0.9rem;    /* Slightly smaller font on mobile */
+            }}
+        }}
     </style>
 </head>
 <body>
@@ -341,12 +360,12 @@ class HtmlReportFormatter:
             </div>
             <div class="row text-center">
                 <div class="col-md-4">
-                    <p>מחיר מינימלי: <span class="stats-number">₪{min_price:.2f}</span></p>
+                    <p>מחיר מינימלי:<br><span class="stats-number">₪{min_price:.2f}</span></p>
                 </div>
                 <div class="col-md-4">
-                    <p>מחיר מקסימלי: <span class="stats-number">₪{max_price:.2f}</span></p>
+                    <p>מחיר מקסימלי:<br><span class="stats-number">₪{max_price:.2f}</span></p>
                 </div>
-                {f'<div class="col-md-4"><p>מחיר מינימלי באונליין: <span class="stats-number">₪{chp_min_price:.2f}</span></p></div>' if chp_min_price else ''}
+                {f'<div class="col-md-4"><p>מחיר מינימלי<br>באונליין:<br><span class="stats-number">₪{chp_min_price:.2f}</span></p></div>' if chp_min_price else ''}
             </div>
         </div>
         '''
@@ -364,7 +383,7 @@ class HtmlReportFormatter:
             if search_name in item_map:
                 item = item_map[search_name]
                 items_html.append(
-                    f'<li><a href="{item.url}" class="text-decoration-none">{item.name}: ₪{item.price:.2f}</a></li>'
+                    f'<li><a href="{item.url}" class="text-decoration-none" target="_blank">{item.name}: ₪{item.price:.2f}</a></li>'
                 )
         
         return "".join(items_html)
@@ -393,7 +412,7 @@ class HtmlReportFormatter:
         venue_html = f'''
         <div class="venue-card {card_class}">
             <h3>{venue_title}</h3>
-            <a href="{venue.url}" class="text-decoration-none" target="_blank">קישור לחנות</a>
+            <a href="{venue.url}" class="text-decoration-none" target="_blank" rel="noopener noreferrer">קישור לחנות</a>
             <div class="price-tag mt-2">₪{venue.total_normalized_price(average_price_map):.2f}</div>
             <ul class="item-list mt-3">
                 {items_html}
@@ -434,7 +453,7 @@ class HtmlReportFormatter:
             <div class="carousel-item{' active' if i == 0 else ''}" data-bs-interval="false">
                 <div class="venue-card">
                     <h3>{venue.name}</h3>
-                    <a href="{venue.url}" class="text-decoration-none" target="_blank">קישור לחנות</a>
+                    <a href="{venue.url}" class="text-decoration-none" target="_blank" rel="noopener noreferrer">קישור לחנות</a>
                     <div class="price-tag mt-2">₪{venue.total_normalized_price(average_price_map):.2f}</div>
                     <ul class="item-list mt-3">
                         {items_html}
@@ -476,7 +495,7 @@ class HtmlReportFormatter:
         
         for i, venue in enumerate(sorted_venues):
             items_html = "".join([
-                f'<li><a href="{url}" class="text-decoration-none">{item_name}: ₪{price:.2f}</a></li>'
+                f'<li><a href="{url}" class="text-decoration-none" target="_blank" rel="noopener noreferrer">{item_name}: ₪{price:.2f}</a></li>'
                 for item_name, (price, url) in venue.items.items()
             ])
             
@@ -499,7 +518,7 @@ class HtmlReportFormatter:
             <div class="carousel-item{' active' if i == 0 else ''}" data-bs-interval="false">
                 <div class="venue-card">
                     <h3>{venue.name}</h3>
-                    <a href="{venue.website_url}" class="text-decoration-none" target="_blank">אתר החנות</a>
+                    <a href="{venue.website_url}" class="text-decoration-none" target="_blank" rel="noopener noreferrer">אתר החנות</a>
                     <div class="price-tag mt-2">₪{venue.total_price():.2f}</div>
                     <ul class="item-list mt-3">
                         {items_html}
@@ -629,6 +648,22 @@ class HtmlReportFormatter:
             print(f"Error saving file: {e}")
             raise
 
+    def _get_price_range(self, item_name):
+        """Get min-max price range for an item"""
+        prices = []
+        # Collect prices from all venues
+        for venue in self.venue_id_to_venue.values():
+            matching_items = [item for item in venue.items if item.searched_name == item_name]
+            if len(matching_items) == 1:
+                prices.append(matching_items[0].price)
+        
+        if prices:
+            min_price = min(prices)
+            max_price = max(prices)
+            # Show cheaper price on the left
+            return f"₪{max_price:.2f} - ₪{min_price:.2f}"
+        return "מחיר לא ידוע"
+
     def _create_searched_items_carousel(self):
         if not hasattr(self, 'items_to_search'):
             return ''
@@ -636,11 +671,11 @@ class HtmlReportFormatter:
         items_html = []
         for item, must_include in self.items_to_search:
             class_name = 'must-include' if must_include else 'optional'
-            avg_price = self.average_price_map.get(item, 0)
+            price_range = self._get_price_range(item)
             items_html.append(f'''
                 <div class="tooltip search-item {class_name}">
                     {item}
-                    <span class="tooltiptext">מחיר ממוצע - ₪{avg_price:.2f}</span>
+                    <span class="tooltiptext">{price_range}</span>
                 </div>
             ''')
         

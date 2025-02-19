@@ -3,8 +3,6 @@ from infrastructure.wolt_client import WoltClient
 from models.venue import Venue
 from models.venue_item import VenueItem
 from utils.duplicate_items_handler import DuplicateItemsHandler
-from utils.html_report_formatter import HtmlReportFormatter  # Change import
-from utils.console_report_formatter import ConsoleReportFormatter
 from bidi.algorithm import get_display
 
 class WoltService:
@@ -16,7 +14,6 @@ class WoltService:
         self.venue_to_items_map = {}
         self.item_price_map = {item[0]: [] for item in items_to_search}
         self.average_price_map = {}
-        self.console_report_formatter = ConsoleReportFormatter()
 
     def fetch_items(self):
         print("Fetching items from Wolt client...")
@@ -84,93 +81,6 @@ class WoltService:
                     total_duplicates_filtered += len(matching_items) - 1
             total_venues_processed += 1
         print(f"Finished filtering {total_duplicates_filtered} duplicate items from {total_venues_processed} venues.")
-
-    def generate_report(self, file_name, chp_venues=None):
-        print("Generating reports...")
-        # Change to HtmlReportFormatter and ensure .html extension
-        base_name, extension = os.path.splitext(file_name)
-        html_file = f"{base_name}.html"
-        
-        # Initialize formatter and set items to search
-        result_formatter = HtmlReportFormatter(html_file)
-        result_formatter.set_items_to_search(self.items_to_search)  # Add this line
-        
-        must_include_items = [item_to_search for item_to_search, must_include in self.items_to_search if must_include]
-        sorted_venues = sorted(
-            [venue for venue in self.venue_id_to_venue.values() if all(
-                any(item.searched_name == item_to_search for item in venue.items) for item_to_search in must_include_items)],
-            key=lambda v: v.total_normalized_price(self.average_price_map)
-        )
-        
-        if sorted_venues:
-            # Add statistics at the top
-            result_formatter.add_statistics(sorted_venues, self.average_price_map, chp_venues)
-            
-            # Add cheapest venue as main card with special styling
-            result_formatter.add_venue_card(
-                sorted_venues[0], 
-                self.average_price_map,
-                "החנות הזולה ביותר",
-                "cheapest-venue"  # Changed from bg-light
-            )
-            
-            # Add other venues in carousel
-            if len(sorted_venues) > 1:
-                result_formatter.add_carousel(
-                    sorted_venues[1:4],  # Show up to 3 other options
-                    self.average_price_map,
-                    "other",
-                    "אפשרויות נוספות"
-                )
-        else:
-            # Handle case when no venues have all required items
-            venues_with_one_missing_item = [
-                venue for venue in self.venue_id_to_venue.values()
-                if len([item for item in venue.missing_items if any(
-                    item.searched_name == item_to_search and must_include 
-                    for item_to_search, must_include in self.items_to_search)]) == 1
-            ]
-            venues_with_one_missing_item.sort(key=lambda v: v.total_normalized_price(self.average_price_map))
-            
-            if venues_with_one_missing_item:
-                result_formatter.add_heading("חנויות עם פריט חיוני אחד חסר", level=2)
-                for venue in venues_with_one_missing_item[:3]:
-                    result_formatter.add_venue_card(venue, self.average_price_map)
-
-        # Add most expensive venue with grey styling
-        most_expensive_venue = max(
-            [venue for venue in self.venue_id_to_venue.values() if all(
-                any(item.searched_name == item_to_search for item in venue.items) 
-                for item_to_search in must_include_items)],
-            key=lambda v: v.total_normalized_price(self.average_price_map),
-            default=None
-        )
-        if most_expensive_venue:
-            result_formatter.add_venue_card(
-                most_expensive_venue,
-                self.average_price_map,
-                "החנות היקרה ביותר",
-                "most-expensive"  # Changed from bg-secondary text-white
-            )
-        
-        # Add CHP venues section
-        if chp_venues:
-            result_formatter.add_chp_venues(chp_venues)
-            
-        # Save the HTML report
-        result_formatter.save()
-        print("Report saved to", result_formatter.file_name)
-        
-        # Generate console report
-        self.console_report_formatter.generate_console_report(
-            self.venue_id_to_venue,
-            self.average_price_map,
-            self.items_to_search,
-            chp_venues
-        )
-        
-        # Open the created HTML file in default browser
-        os.system(f"open \"{result_formatter.file_name}\"")
 
     def sort_found_items_by_venue(self, items, item_to_search):
         venue_to_items = {}

@@ -1,5 +1,6 @@
 from services.wolt_service import WoltService
 from services.chp_service import ChpService
+from utils.report_generator import ReportGenerator
 
 
 # A list of tuples where each tuple contains an item to search and a boolean indicating whether
@@ -40,8 +41,14 @@ def main():
     chp_service = ChpService(ADDRESS, ITEMS_TO_SEARCH)
     chp_service.fetch_items()
     
-    # Generate combined report with .html extension
-    wolt_service.generate_report("results.html", chp_service.get_complete_venues())
+    # Generate report using ReportGenerator
+    report_generator = ReportGenerator(ITEMS_TO_SEARCH)
+    report_generator.generate_report(
+        "results.html",
+        wolt_service.venue_id_to_venue,
+        wolt_service.average_price_map,
+        chp_service.get_complete_venues()
+    )
 
 if __name__ == "__main__":
     main()
