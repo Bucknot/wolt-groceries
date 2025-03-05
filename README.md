@@ -20,13 +20,20 @@ The html file contains links to all of the venues and the items found in them.
    cd wolt-groceries
    ```
 
-2. **Install Dependencies**:
-   Make sure you have Python installed. Then, install the required packages:
+2. **Create a Virtual Environment**:
+   Create a new virtual environment using Python:
    ```bash
-   pip install -r requirements.txt
+   python -m venv venv
+   source venv/bin/activate
    ```
 
-3. **Run the Script**:
+3. **Install Dependencies**:
+   Make sure you have Python installed. Then, install the required packages:
+   ```bash
+   python -m pip install -r requirements.txt
+   ```
+
+4. **Run the Script**:
    Execute the script using Python:
    ```bash
    python main.py
